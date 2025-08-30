@@ -1,60 +1,28 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-
-type Advocate = {
-  firstName: string;
-  lastName: string;
-  city: string;
-  degree: string;
-  specialties: string[];
-  yearsOfExperience: number;
-  phoneNumber: string;
-};
+import { useAdvocates } from "./hooks/useAdvocates";
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data } = useQuery<{ data: Advocate[] }>({
-    queryKey: ["advocates"],
-    queryFn: () => fetch("/api/advocates").then((res) => res.json()),
-  });
-
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const onClick = () => {
-    setSearchTerm("");
-  };
-
-  const filteredAdvocates = data?.data.filter((advocate) => {
-    const term = searchTerm.toLowerCase();
-    return (
-      advocate.firstName.toLowerCase().includes(term) ||
-      advocate.lastName.toLowerCase().includes(term) ||
-      advocate.city.toLowerCase().includes(term) ||
-      advocate.degree.toLowerCase().includes(term) ||
-      advocate.specialties.some((s) => s.toLowerCase().includes(term)) ||
-      advocate.yearsOfExperience.toString().includes(term)
-    );
-  });
+  const { data, isFetching } = useAdvocates(searchTerm);
 
   return (
     <main className="p-6">
       <h1 className="text-2xl font-bold mb-6">Solace Advocates</h1>
+
       <div className="mb-6">
         <label className="block mb-2 font-medium">Search</label>
         <div className="flex gap-2">
           <input
             className="border rounded px-3 py-2 w-full max-w-md"
             value={searchTerm}
-            onChange={onChange}
+            onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search advocates..."
           />
           <button
             className="bg-gray-200 hover:bg-gray-300 rounded px-4 py-2"
-            onClick={onClick}
+            onClick={() => setSearchTerm("")}
           >
             Reset
           </button>
@@ -65,6 +33,7 @@ export default function Home() {
           </p>
         )}
       </div>
+
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
           <thead className="bg-gray-100">
@@ -93,7 +62,7 @@ export default function Home() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {filteredAdvocates?.map((advocate, idx) => (
+            {data?.data?.map((advocate, idx) => (
               <tr
                 key={advocate.phoneNumber || idx}
                 className="hover:bg-gray-50"
@@ -113,6 +82,13 @@ export default function Home() {
                 <td className="px-4 py-2">{advocate.phoneNumber}</td>
               </tr>
             ))}
+            {!isFetching && !data?.data?.length && (
+              <tr>
+                <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
+                  No advocates found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
