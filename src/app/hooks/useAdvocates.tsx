@@ -11,17 +11,25 @@ type Advocate = {
   phoneNumber: string;
 };
 
-export function useAdvocates(searchTerm: string) {
+export function useAdvocates(
+  searchTerm: string,
+  sortBy: string,
+  direction: "asc" | "desc"
+) {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   return useQuery<{ data: Advocate[] }>({
-    queryKey: ["advocates", debouncedSearchTerm],
+    queryKey: ["advocates", debouncedSearchTerm, sortBy, direction],
     queryFn: async () => {
       const res = await fetch("/api/advocates", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ search: debouncedSearchTerm }),
+        body: JSON.stringify({
+          search: debouncedSearchTerm,
+          sortBy,
+          direction,
+        }),
       });
       if (!res.ok) throw new Error("Failed to fetch advocates");
       return res.json();

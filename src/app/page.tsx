@@ -5,7 +5,22 @@ import { useAdvocates } from "./hooks/useAdvocates";
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data, isFetching } = useAdvocates(searchTerm);
+  const [sortBy, setSortBy] = useState("firstName");
+  const [direction, setDirection] = useState<"asc" | "desc">("asc");
+
+  const { data, isFetching } = useAdvocates(searchTerm, sortBy, direction);
+
+  const formatPhoneNumber = (phoneNumber: number) => {
+    const first = String(phoneNumber).slice(0, 3);
+    const second = String(phoneNumber).slice(3, 6);
+    const third = String(phoneNumber).slice(6, 10);
+    return `(${first}) ${second}-${third}`;
+  };
+
+  const onSortClick = (sortBy: string) => {
+    setSortBy(sortBy);
+    setDirection(direction === "asc" ? "desc" : "asc");
+  };
 
   return (
     <main className="p-6">
@@ -38,7 +53,10 @@ export default function Home() {
         <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+              <th
+                onClick={() => onSortClick("firstName")}
+                className="px-4 py-2 text-left text-sm font-semibold text-gray-700"
+              >
                 First Name
               </th>
               <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
@@ -79,7 +97,9 @@ export default function Home() {
                   </ul>
                 </td>
                 <td className="px-4 py-2">{advocate.yearsOfExperience}</td>
-                <td className="px-4 py-2">{advocate.phoneNumber}</td>
+                <td className="px-4 py-2">
+                  {formatPhoneNumber(advocate.phoneNumber)}
+                </td>
               </tr>
             ))}
             {!isFetching && !data?.data?.length && (

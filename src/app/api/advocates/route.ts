@@ -1,10 +1,16 @@
 import { PgSelect } from "drizzle-orm/pg-core";
 import db from "../../../db";
 import { advocates } from "../../../db/schema";
-import { sql } from "drizzle-orm";
+import { asc, desc, sql } from "drizzle-orm";
+
+type RequestBody = {
+  search: string;
+  sortBy: "firstName";
+  direction: "asc" | "desc";
+};
 
 export async function POST(req: Request) {
-  const { search } = await req.json();
+  const { search, sortBy, direction }: RequestBody = await req.json();
 
   // @ts-expect-error
   let query: PgSelect = db.select().from(advocates);
@@ -29,7 +35,9 @@ export async function POST(req: Request) {
 
   const dynamicQuery = query.$dynamic();
 
-  const data = await dynamicQuery;
+  const directionClause =
+    direction === "asc" ? asc(advocates[sortBy]) : desc(advocates[sortBy]);
+  const data = await dynamicQuery.orderBy(directionClause);
 
   return Response.json({ data });
 }
