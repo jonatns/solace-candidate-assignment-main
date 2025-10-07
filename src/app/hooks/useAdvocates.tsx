@@ -8,7 +8,7 @@ type Advocate = {
   degree: string;
   specialties: string[];
   yearsOfExperience: number;
-  phoneNumber: string;
+  phoneNumber: number;
 };
 
 export function useAdvocates(
